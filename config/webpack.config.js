@@ -73,6 +73,8 @@ const sassRegex = /\.(scss|sass)$/;
 const sassModuleRegex = /\.module\.(scss|sass)$/;
 const lessRegex = /\.less$/;
 const lessModuleRegex = /\.module\.less$/;
+const stylRegex = /\.styl$/;
+const stylModuleRegex = /\.module\.styl$/;
 
 const hasJsxRuntime = (() => {
     if (process.env.DISABLE_NEW_JSX_TRANSFORM === 'true') {
@@ -584,6 +586,46 @@ module.exports = function (webpackEnv) {
                                 'less-loader'
                             ),
                         },
+                        {
+                            test: stylRegex,
+                            exclude: stylModuleRegex,
+                            use: getStyleLoaders(
+                                {
+                                    importLoaders: 3,
+                                    sourceMap: isEnvProduction
+                                        ? shouldUseSourceMap
+                                        : isEnvDevelopment,
+                                    modules: {
+                                        mode: 'icss',
+                                    },
+                                },
+                                'stylus-loader'
+                            ),
+                            // Don't consider CSS imports dead code even if the
+                            // containing package claims to have no side effects.
+                            // Remove this when webpack adds a warning or an error for this.
+                            // See https://github.com/webpack/webpack/issues/6571
+                            sideEffects: true,
+                        },
+                        // Adds support for CSS Modules, but using styl
+                        // using the extension .module.scss or .module.styl
+                        {
+                            test: stylModuleRegex,
+                            use: getStyleLoaders(
+                                {
+                                    importLoaders: 3,
+                                    sourceMap: isEnvProduction
+                                        ? shouldUseSourceMap
+                                        : isEnvDevelopment,
+                                    modules: {
+                                        mode: 'local',
+                                        getLocalIdent: getCSSModuleLocalIdent,
+                                    },
+                                },
+                                'stylus-loader'
+                            ),
+                        },
+
                         // "file" loader makes sure those assets get served by WebpackDevServer.
                         // When you `import` an asset, you get its (virtual) filename.
                         // In production, they would get copied to the `build` folder.
